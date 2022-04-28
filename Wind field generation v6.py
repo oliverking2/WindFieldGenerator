@@ -13,7 +13,7 @@ import timeit
 
 
 baseWindSpeed = 10
-windSpeedMultiplier = 1.7   # Max gust size
+windSpeedMultiplier = 0.7   # Max gust size
 
 
 shape = []
@@ -38,7 +38,6 @@ class gustElement:
         self.position = position
         self.radius = radius
         self.direction = direction/180 * math.pi
-        self.visible = True
         self.directionVec = [-math.sin(self.direction), -math.cos(self.direction)]
 
     def updatePosition(self):
@@ -54,12 +53,11 @@ variation = 30  # shift size
 windDirectionDeg = 15
 
 numGusts = int(size / 2)
-gusts = [gustElement(baseWindSpeed * round(random.normalvariate(0.75, 0.1),2),
+gusts = [gustElement(baseWindSpeed * random.randrange(150, 200, 1)/100,
                      [random.randint(0, size - 1), random.randint(0, size - 1)],
-                     random.randint(1, 3),
+                     random.randint(3, 6),
                      windDirectionDeg + random.randint(-variation, variation)) for a in range(numGusts)]
 
-gusts.sort(key=lambda x: x.magnitude)
 windDirectionRadCorrected = (windDirectionDeg + 180)/180 * math.pi  # 180 factor added to rotate arrow
 
 xComDir = np.sin(windDirectionRadCorrected) * np.ones((size, size))
@@ -130,7 +128,6 @@ def changeShiftShape(matrix1, matrix2, xypos, direction):
 
 def refreshFrame(windSpeedArray, gusts):
     gustArray = np.zeros((size, size))
-    overlap = np.zeros((size, size))
     xComDir = np.sin(windDirectionRadCorrected) * np.ones((size, size))
     yComDir = np.cos(windDirectionRadCorrected) * np.ones((size, size))
 
@@ -138,45 +135,24 @@ def refreshFrame(windSpeedArray, gusts):
         position = np.array([round(a) for a in gust.position])
 
         addGustShape(gustArray, gust.magnitude * shapes[gust.radius], position - (gust.radius - 1))
-        addGustShape(overlap, shapes[gust.radius], position - (gust.radius - 1))
 
-        locsx, locsy = np.where(overlap>1)
-
-        for i in range(len(locsx)):
-            gustArray[locsx[i]][locsy[i]] = gust.magnitude
-
-        overlap[overlap > 1] = 1
         changeShiftShape(xComDir, gust.directionVec[0] * shapes[gust.radius], position - (gust.radius - 1), direction="x")
         changeShiftShape(yComDir, gust.directionVec[1] * shapes[gust.radius], position - (gust.radius - 1), direction="y")
 
-    # gustArray[gustArray > baseWindSpeed * (windSpeedMultiplier + 1)] = baseWindSpeed * (windSpeedMultiplier + 1)
-    gusts.sort(key=lambda x: x.magnitude)
+        gustArray[gustArray > baseWindSpeed * (windSpeedMultiplier + 1)] = baseWindSpeed * (windSpeedMultiplier + 1)
 
     superimposedWind = windSpeedArray + gustArray
-
-    # fig = plt.figure(figsize=[13, 13])
-    #
-    # plt.contourf(X1, Y1, superimposedWind, cmap="winter")
-    # plt.colorbar()
-    # plt.clim(vmin=10, vmax=40)
-    # plt.quiver(X2, Y2, xComDir, yComDir, pivot="mid")
-    #
-    # ax = fig.gca()
-    # ax.set_xticks(np.arange(-0.5, size + 0.5))
-    # ax.set_yticks(np.arange(-0.5, size + 0.5))  # makes figure fit on the page
-    #
-    # plt.axis("off")
 
     for gust in gusts:  # replace when they reach the edges
         gust.updatePosition()
         if gust.position[0] < 0 or gust.position[1] < 0 or gust.position[0] > size - 1 or gust.position[1] > size - 1:
             gusts.remove(gust)
-            gusts.append(gustElement(baseWindSpeed * round(random.normalvariate(0.75, 0.1),2),
+            gusts.append(gustElement(random.randint(round(0.25 * baseWindSpeed),
+                                    windSpeedMultiplier * baseWindSpeed),
                                     [size - 1, random.randint(0, size - 1)],
-                                    random.randint(1, 5),
+                                    random.randint(1, 3),
                                     windDirectionDeg + random.randint(-variation, variation)))
     return superimposedWind
-
 
 def timeFunc():
     def wrapper(func, *args, **kwargs):
@@ -189,34 +165,17 @@ def timeFunc():
     print(timeit.timeit(wrapped, number=10))
     print(timeit.timeit(wrapped, number=100))
 
-#
-# while True:
-#     refreshFrame(windSpeedArray, gusts)
-#     plt.pause(0.1)
-
 
 y = []
 
-length = 10000
-
-for i in range(length):
-    b = refreshFrame(windSpeedArray, gusts)
-    a = b[25][25]
+for i in range(1000):
+    a = refreshFrame(windSpeedArray, gusts)[25][25]
     if a > 20:
         y.append(20)
     else:
         y.append(a)
 
-x = [i for i in range(length)]
+x = [i for i in range(1000)]
 
 plt.plot(x, y)
-plt.show()
-
-x2, y2 = [], []
-for i in np.arange(15.0, 20.0, 0.1):
-    a = round(i, 1)
-    x2.append(str(a))
-    y2.append(100 * y.count(a)/len(x))
-
-plt.bar(x2,y2)
 plt.show()

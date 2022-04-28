@@ -64,7 +64,7 @@ windDirectionDeg = 15
 
 numGusts = int(size / 2)
 gusts = [gustElement(random.randint(round(0.25 * baseWindSpeed), windSpeedMultiplier * baseWindSpeed),
-                     [random.randint(0, size - 1), random.randint(0, size - 1)],
+                     [random.randint(0, velocitySize - 1), random.randint(0, velocitySize - 1)],
                      random.randint(1, 3),
                      windDirectionDeg + random.randint(-variation, variation)) for a in range(numGusts)]
 
@@ -184,11 +184,10 @@ def timeFunc():
         return wrapped
 
     wrapped = wrapper(refreshFrame, windSpeedArray, gusts)
-
     print(timeit.timeit(wrapped, number=10))
     print(timeit.timeit(wrapped, number=100))
 
-
+'''
 while True:
     refreshFrame(windSpeedArray, gusts)
-    plt.pause(0.1)
+    plt.pause(0.1)'''
