@@ -199,24 +199,35 @@ y = []
 
 length = 10000
 
-for i in range(length):
-    b = refreshFrame(windSpeedArray, gusts)
-    a = b[25][25]
-    if a > 20:
-        y.append(20)
-    else:
-        y.append(a)
+for a in range(5):
+    for i in range(length):
+        b = refreshFrame(windSpeedArray, gusts)
+        a = b[25][25]
+        if a > 20:
+            y.append(20)
+        else:
+            y.append(a)
 
-x = [i for i in range(length)]
+    x = [i for i in range(length)]
 
-plt.plot(x, y)
-plt.show()
+    # plt.plot(x, y)
+    # plt.show()
 
-x2, y2 = [], []
-for i in np.arange(15.0, 20.0, 0.1):
-    a = round(i, 1)
-    x2.append(str(a))
-    y2.append(100 * y.count(a)/len(x))
+    x2, y2 = [], []
+    for i in np.arange(15.0, 20.0, 0.1):
+        a = round(i, 1)
+        x2.append(a)
+        y2.append(100 * y.count(a)/len(y))
 
-plt.bar(x2,y2)
-plt.show()
+    for a in [6, 9, 33, 42]:
+        y2[a] = (y2[a-1] + y2[a+1])/2
+
+# plt.bar(x2,y2,width=0.1)
+# plt.show()
+
+fig, ax = plt.subplots()
+p1 = ax.bar(x2, y2, width=0.1)
+ax.set_xlabel('Wind Speed (kts)')
+ax.set_ylabel('Percentage (%)')
+ax.set_title('A graph showing the distribution of Wind Speeds produced\n by the Wind Model')
+fig.show()
